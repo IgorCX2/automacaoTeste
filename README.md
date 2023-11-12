@@ -1,5 +1,6 @@
 # automacaoTeste
 
+# C:\\Users\\Igor Cortez\\Desktop\\chromedriver.exe
 ## pip install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host=files.pythonhosted.org selenium
 ## pip install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host=files.pythonhosted.org webdriver-manager
 ## python.exe -m pip install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host=files.pythonhosted.org --upgrade pip
