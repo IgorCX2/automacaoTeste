@@ -1,0 +1,46 @@
+import tkinter as tk
+
+class App:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Manutenção Automatizada")
+
+        self.root.configure(bg='dark blue')
+        self.root.geometry("1000x800") 
+
+        self.root.eval('tk::PlaceWindow . center')
+
+        buttons1=["teste","teste1","teste2","teste3","teste4"]
+        buttons2=["teste","teste1","teste2","teste3","teste4"]
+        button_width = 8
+        button_height = 2
+        button_grand = (button_width*5)+1
+
+        title_label = tk.Label(root, text="MANUTENÇÃO", font=("Helvetica", 36, "bold"), bg='dark blue', fg='white')
+        title_label.pack(pady=20)
+
+        button_frame = tk.Frame(self.root, bg='dark blue')
+        button_frame.pack()
+        
+        for i in range(len(buttons1)):
+            button = tk.Button(button_frame, text=buttons1[i], width=button_width, height=button_height, bg='white', fg='dark blue')
+            button.pack(side='left', padx=5, pady=5)
+
+        button_frame = tk.Frame(self.root, bg='dark blue')
+        button_frame.pack()
+
+        for i in range(len(buttons2)):
+            button = tk.Button(button_frame, text=buttons1[i], width=button_width, height=button_height, bg='white', fg='dark blue')
+            button.pack(side='left', padx=5, pady=5)
+
+        button_frame = tk.Frame(self.root, bg='dark blue')
+        button_frame.pack()
+
+        button = tk.Button(button_frame, text=buttons1[0], width=button_grand, height=button_height, bg='white', fg='dark blue')
+        button.pack(side='left', padx=5, pady=5)
+        button = tk.Button(button_frame, text=buttons1[0], width=button_width, height=button_height, bg='white', fg='dark blue')
+        button.pack(side='left', padx=4, pady=4)
+
+root = tk.Tk()
+app = App(root)
+root.mainloop()
