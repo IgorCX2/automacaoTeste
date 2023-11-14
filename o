@@ -10,36 +10,40 @@ class App:
 
         self.root.eval('tk::PlaceWindow . center')
 
-        buttons1=["teste","teste1","teste2","teste3","teste4"]
-        buttons2=["teste","teste1","teste2","teste3","teste4"]
-        button_width = 8
-        button_height = 2
-        button_grand = (button_width*5)+1
+        buttons_cod1=["0405","0406","0407","0408","0403","0706"]
+        buttons_cod2=["0502","0504","0505","0506","0404","0418"]
+        buttons_txt1=["Elétrico","Hidráulico","Mecânico","Pneumático","Análise","Liberar"]
+        buttons_txt2=["Pre-Elétrico","Pre-Hidráulico","Pre-Mecânico","Pre-Pneumático","BCR","Ajus.Parâmetro"]
+        button_width = 17
+        button_height = 10
+        button_grand = (button_width*4)+11
 
-        title_label = tk.Label(root, text="MANUTENÇÃO", font=("Helvetica", 36, "bold"), bg='dark blue', fg='white')
+        title_label = tk.Label(root, text="MANUTENÇÃO", font=("Helvetica", 60, "bold"), bg='dark blue', fg='white')
         title_label.pack(pady=20)
 
         button_frame = tk.Frame(self.root, bg='dark blue')
         button_frame.pack()
         
-        for i in range(len(buttons1)):
-            button = tk.Button(button_frame, text=buttons1[i], width=button_width, height=button_height, bg='white', fg='dark blue')
-            button.pack(side='left', padx=5, pady=5)
+        for i in range(len(buttons_cod1)):
+            button = tk.Button(button_frame, text=buttons_cod1[i], width=button_width, height=button_height, bg='white', fg='dark blue')
+            button.pack(side='left', padx=8, pady=8)
 
         button_frame = tk.Frame(self.root, bg='dark blue')
         button_frame.pack()
 
-        for i in range(len(buttons2)):
-            button = tk.Button(button_frame, text=buttons1[i], width=button_width, height=button_height, bg='white', fg='dark blue')
-            button.pack(side='left', padx=5, pady=5)
+        for i in range(len(buttons_cod2)):
+            button = tk.Button(button_frame, text=buttons_cod2[i], width=button_width, height=button_height, bg='white', fg='dark blue')
+            button.pack(side='left', padx=8, pady=8)
 
         button_frame = tk.Frame(self.root, bg='dark blue')
         button_frame.pack()
 
-        button = tk.Button(button_frame, text=buttons1[0], width=button_grand, height=button_height, bg='white', fg='dark blue')
-        button.pack(side='left', padx=5, pady=5)
-        button = tk.Button(button_frame, text=buttons1[0], width=button_width, height=button_height, bg='white', fg='dark blue')
-        button.pack(side='left', padx=4, pady=4)
+        button = tk.Button(button_frame, text="SISTEMA LOTTO", width=button_grand, height=button_height, bg='white', fg='dark blue')
+        button.pack(side='left', padx=8, pady=8)
+        button = tk.Button(button_frame, text="BCR", width=button_width, height=button_height, bg='white', fg='dark blue')
+        button.pack(side='left', padx=8, pady=8)
+        button = tk.Button(button_frame, text="LIMPEZA", width=button_width, height=button_height, bg='white', fg='dark blue')
+        button.pack(side='left', padx=8, pady=8)
 
 root = tk.Tk()
 app = App(root)
