@@ -1,0 +1,39 @@
+import customtkinter
+
+customtkinter.set_appearance_mode("dark")
+customtkinter.set_default_color_theme("dark-blue")
+
+janela = customtkinter.CTk()
+janela.title("Manutencao Automatizada")
+largura_tela = janela.winfo_screenwidth()
+altura_tela = janela.winfo_screenheight()
+janela.geometry(f"{largura_tela}x{altura_tela}")
+buttons_cod1=["0405","0406","0407","0408","0403","0706"]
+buttons_cod2=["0502","0504","0505","0506","0404","0418"]
+buttons_txt1=["Elétrico","Hidráulico","Mecânico","Pneumático","Análise","Liberar"]
+buttons_txt2=["Pre-Elétrico","Pre-Hidráulico","Pre-Mecânico","Pre-Pneumático","BCR","Ajus.Parâmetro"]
+button_width = 153
+button_height = 120
+button_grand = (button_width*4)+50
+title_label = customtkinter.CTkLabel(janela, text="MANUTENÇÃO", font=("Helvetica", 60, "bold"), fg_color='transparent', text_color='white')
+title_label.pack(pady=100)
+button_frame = customtkinter.CTkFrame(janela, fg_color='transparent')
+button_frame.pack()
+for i in range(len(buttons_cod1)):
+    button = customtkinter.CTkButton(button_frame, text=buttons_txt1[i], font=("Helvetica", 18, "bold"), width=button_width, height=button_height, fg_color='white', text_color='dark blue')
+    button.pack(side='left', padx=8, pady=8)
+button_frame = customtkinter.CTkFrame(janela, fg_color='transparent')
+button_frame.pack()
+for i in range(len(buttons_cod2)):
+    button = customtkinter.CTkButton(button_frame, text=buttons_txt2[i], font=("Helvetica", 18, "bold"), width=button_width, height=button_height, fg_color='white', text_color='dark blue')
+    button.pack(side='left', padx=8, pady=8)
+button_frame = customtkinter.CTkFrame(janela, fg_color='transparent')
+button_frame.pack()
+button = customtkinter.CTkButton(button_frame, text="SISTEMA LOTTO", font=("Helvetica", 18, "bold"), width=button_grand, height=button_height, fg_color='white', text_color='dark blue')
+button.pack(side='left', padx=8, pady=8)
+button = customtkinter.CTkButton(button_frame, text="BCR", font=("Helvetica", 18, "bold"), width=button_width, height=button_height, fg_color='white', text_color='dark blue')
+button.pack(side='left', padx=8, pady=8)
+button = customtkinter.CTkButton(button_frame, text="LIMPEZA", font=("Helvetica", 18, "bold"), width=button_width, height=button_height, fg_color='white', text_color='dark blue')
+button.pack(side='left', padx=8, pady=8)
+
+janela.mainloop()
