@@ -1,4 +1,8 @@
 import customtkinter
+import tkinter
+import customtkinter
+from PIL import Image
+from tkinter import Tk, PhotoImage
 from datetime import datetime
 
 customtkinter.set_appearance_mode("dark")
@@ -49,7 +53,7 @@ def janelaConfig(janela, titulo):
     janela.title(titulo)
     largura_tela = janela.winfo_screenwidth()
     altura_tela = janela.winfo_screenheight()
-    janela.geometry(f"{largura_tela}x{altura_tela}")
+    janela.geometry("%dx%d"%(largura_tela,altura_tela))
 
 def trocarJanela(antiga, nova):
     antiga.destroy()
@@ -57,8 +61,8 @@ def trocarJanela(antiga, nova):
 
 
 def telaReporte_pcFactory(cod, txt):
-    turno_atual = obter_turno_atual()
     janela_reporte_pcf = customtkinter.CTk()
+    image_paths = ["ola.png", "teste.png", "kkkk.png"]
     janelaConfig(janela_reporte_pcf, "Reporte"+" "+cod)
     titlereporte_label = customtkinter.CTkLabel(janela_reporte_pcf, text=txt.upper(), font=("Helvetica", 60, "bold"), fg_color='transparent', text_color='white')
     titlereporte_label.pack(pady=100)
@@ -71,9 +75,9 @@ def telaReporte_pcFactory(cod, txt):
     userbox_frame = customtkinter.CTkFrame(user_frame, fg_color='transparent')
     userbox_frame.pack()
     usuario_carregados = mostrar_usuarios(obter_turno_atual())
-    for usuario in usuario_carregados:
-        if usuario["Nome"] != None:
-            button = customtkinter.CTkButton(userbox_frame, text=usuario["Nome"], font=("Helvetica", 18, "bold"), width=button_width, height=button_height, fg_color='white', text_color='dark blue')
+    for i in range(len(usuario_carregados)):
+        if usuario_carregados[i]["Nome"] != None:
+            button = customtkinter.CTkButton(userbox_frame, text=usuario_carregados[i]["Nome"],font=("Helvetica", 18, "bold"), width=button_width, height=button_height, fg_color='white', text_color='dark blue')
             button.pack(side='left', padx=8, pady=8)
 
     trocarJanela(janela,janela_reporte_pcf)
