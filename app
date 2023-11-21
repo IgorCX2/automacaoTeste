@@ -73,7 +73,7 @@ def mudarPessoa(pessoa, teste):
     global nomeSelecionado
     print(pessoa)
     nomeSelecionado = pessoa
-    teste.configure(text="new text")
+    teste.configure(fg_color="red")
 
 def telaLotto(local):
     janela_lotto= customtkinter.CTk()
@@ -115,11 +115,10 @@ def telaReporte_pcFactory(cod, txt):
             corSelect = "red"
         if usuario_carregados[i]["Nome"] != None: 
             my_image = customtkinter.CTkImage(light_image=Image.open("config/imgs/users/"+usuario_carregados[i]["Foto"]),dark_image=Image.open("config/imgs/users/"+usuario_carregados[i]["Foto"]),size=(90, 110))
-            button_user = customtkinter.CTkButton(userbox_frame, image=my_image, compound="top",command=lambda arg1=usuario_carregados[i]["Nome"], arg2=usertitle_label: mudarPessoa (arg1,arg2), text=usuario_carregados[i]["Nome"],font=("Helvetica", 18, "bold"), fg_color=corSelect, text_color='white')
+            button_user = customtkinter.CTkButton(userbox_frame, image=my_image, compound="top", text=usuario_carregados[i]["Nome"],font=("Helvetica", 18, "bold"), fg_color="transparent", text_color='white')
+            button_user.configure(command=lambda arg1=usuario_carregados[i]["Nome"], arg2=button_user: mudarPessoa(arg1, arg2))
             button_user.pack(side='left', padx=8, pady=8)
 
-    button_user_teste = customtkinter.CTkButton(userbox_frame,command=lambda arg1="kkkkkkk", arg2=button_user_teste: mudarPessoa (arg1,arg2), text="kkkkk",font=("Helvetica", 18, "bold"), fg_color="transparent", text_color='white')
-    button_user_teste.pack(side='left', padx=8, pady=8)
 
     digitMaquina_frame = customtkinter.CTkFrame(frame_total, fg_color='transparent')
     digitMaquina_frame.pack(pady=20)
