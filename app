@@ -4,10 +4,11 @@ import customtkinter
 from PIL import Image
 from tkinter import Tk, PhotoImage
 from datetime import datetime
+import json ##adcionar biblioteca
 
 customtkinter.set_appearance_mode("dark")
 customtkinter.set_default_color_theme("dark-blue")
-nomeSelecionado = ""
+nomeSelecionado = "31231"
 def carregar_usuarios():
     try:
         with open("users/userConfig.txt", "r") as arquivo:
@@ -67,15 +68,23 @@ def janelaConfig(janela, titulo):
     janela.title(titulo)
     largura_tela = janela.winfo_screenwidth()
     altura_tela = janela.winfo_screenheight()
-    janela.geometry("%dx%d"%(largura_tela,altura_tela))
+    janela.geometry(f"{largura_tela}x{altura_tela}+0+0")
 
-def mudarPessoa(pessoa, teste):
-    global nomeSelecionado
-    print(pessoa)
-    nomeSelecionado = pessoa
-    teste.configure(fg_color="red")
 
-def telaLotto(local):
+def telaLotto(local, usuario):
+    nomeSelecionado = usuario
+    def pesquisar_chave(event):
+        chave_campo_digitada = digt_chave.get()
+
+        with open("c:/Users/User/Desktop/chaves.txt", "r") as arquivo:
+            dados = arquivo.read()
+            chaves = json.loads("[" + dados.replace("}\n{", "},{") + "]")
+            for item in chaves:
+                if str(item.get("chave")) == chave_campo_digitada:
+                    titletipo_label.configure(text=f"{item.get('tipo')}")
+                    return
+            titletipo_label.configure(text="Chave não encontrada")
+
     janela_lotto= customtkinter.CTk()
     if local == "modal":
         janela_lotto.title("LOTTO")
@@ -83,15 +92,36 @@ def telaLotto(local):
     else:
         janela.destroy()
         janelaConfig(janela_lotto, "LOTTO")
-    
+
+    titletipo_label = customtkinter.CTkLabel(janela_lotto, text="", font=("Helvetica", 60), fg_color='transparent', text_color='white')
+    titletipo_label.pack()
     titlereporte_label = customtkinter.CTkLabel(janela_lotto, text="LOTTO", font=("Helvetica", 60, "bold"), fg_color='transparent', text_color='white')
-    titlereporte_label.pack(pady=70)
+    titlereporte_label.pack()
+
+
+    frame_total = customtkinter.CTkFrame(janela_lotto,fg_color='transparent',width=501)
+    frame_total.pack()
+    lotto_inicial_frame = customtkinter.CTkFrame(frame_total, fg_color='transparent',width=950)
+    lotto_inicial_frame.pack(side='left')
+    chave_title_label = customtkinter.CTkLabel(lotto_inicial_frame, text="Maquina", font=("Helvetica", 20, "bold"), fg_color='transparent',width=950, anchor="w", text_color='white')
+    chave_title_label.pack(pady=10)
+    digt_chave = customtkinter.CTkEntry(lotto_inicial_frame, placeholder_text="Inserir Maquina",width=950,height=35, font=("Helvetica", 20))
+    digt_chave.pack()	
+    digt_chave.bind("<KeyRelease>", pesquisar_chave)
+    teste_title_label = customtkinter.CTkLabel(lotto_inicial_frame, text=nomeSelecionado, font=("Helvetica", 20, "bold"), fg_color='transparent',width=950, anchor="w", text_color='white')
+    teste_title_label.pack(pady=10)
+
     janela_lotto.mainloop()
 
 def enviarPcFactory():
     print(nomeSelecionado)
 
 def telaReporte_pcFactory(cod, txt):
+    def mudarPessoa(pessoa, janela):
+        global nomeSelecionado
+        print(pessoa)
+        nomeSelecionado = pessoa
+        janela.configure(fg_color="red")
     janela.destroy()
     janela_reporte_pcf = customtkinter.CTk()
     janelaConfig(janela_reporte_pcf, "Reporte"+" "+cod)
@@ -138,7 +168,7 @@ def telaReporte_pcFactory(cod, txt):
     buttonSave_frame.pack(pady=20)
     button = customtkinter.CTkButton(buttonSave_frame, text="SALVAR",font=("Helvetica", 18, "bold"), command=enviarPcFactory, fg_color='#6aa84f', text_color='white', width=850,height=40)
     button.pack(side='left', padx=8, pady=8)
-    button = customtkinter.CTkButton(buttonSave_frame, text="LOTTO",font=("Helvetica", 18, "bold"), command=lambda arg1="modal": telaLotto(arg1), fg_color='#1155cc', text_color='white', width=80,height=40)
+    button = customtkinter.CTkButton(buttonSave_frame, text="LOTTO",font=("Helvetica", 18, "bold"), command=lambda arg1="modal", arg2=nomeSelecionado: telaLotto(arg1, arg2), fg_color='#1155cc', text_color='white', width=80,height=40)
     button.pack(side='left', padx=8, pady=8)
 
     janela_reporte_pcf.mainloop()
@@ -162,7 +192,7 @@ for i in range(2):
 
 button_frame = customtkinter.CTkFrame(janela, fg_color='transparent')
 button_frame.pack()
-button = customtkinter.CTkButton(button_frame, text="SISTEMA LOTTO",command=lambda arg1="naomodal": telaLotto(arg1), font=("Helvetica", 18, "bold"), width=button_grand, height=button_height, fg_color='white', text_color='dark blue')
+button = customtkinter.CTkButton(button_frame, text="SISTEMA LOTTO",command=lambda arg1="naomodal", arg2=nomeSelecionado: telaLotto(arg1, arg2), font=("Helvetica", 18, "bold"), width=button_grand, height=button_height, fg_color='white', text_color='dark blue')
 button.pack(side='left', padx=8, pady=8)
 button = customtkinter.CTkButton(button_frame, text="BCR", font=("Helvetica", 18, "bold"), width=button_width, height=button_height, fg_color='white', text_color='dark blue')
 button.pack(side='left', padx=8, pady=8)
