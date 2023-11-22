@@ -1,17 +1,24 @@
 import customtkinter
-import tkinter
-import customtkinter
 from PIL import Image
 from tkinter import Tk, PhotoImage
 from datetime import datetime
-import json ##adcionar biblioteca
+import json
 
 customtkinter.set_appearance_mode("dark")
 customtkinter.set_default_color_theme("dark-blue")
-nomeSelecionado = "31231"
+nomeSelecionado = ""
+maquinaSelecionada = ""
 def carregar_usuarios():
     try:
         with open("users/userConfig.txt", "r") as arquivo:
+            usuarios = eval(arquivo.read())
+        return usuarios
+    except FileNotFoundError:
+        return []
+
+def carregar_maquinas():
+    try:
+        with open("config/maquina.txt", "r") as arquivo:
             usuarios = eval(arquivo.read())
         return usuarios
     except FileNotFoundError:
@@ -60,7 +67,7 @@ def mostrar_usuarios(turno_selecionado, cod):
             if str(usuario["Turno"]) == str(turno_selecionado):
                 usuarios_turno.append(usuario)
         elif isinstance(turno_selecionado, str):
-            if turno_selecionado[0] == 'M' and (usuario["Turno"] == "M" or str(usuario["Turno"]) == turno_selecionado[1:] and usuario["Profissao"] != list_permit[cod]):
+            if turno_selecionado[0] == 'M' and (usuario["Turno"] == "M" or str(usuario["Turno"]) == turno_selecionado[1:]) and usuario["Profissao"] != list_permit[cod]:
                 usuarios_turno.append(usuario)
     return usuarios_turno
 
@@ -70,58 +77,94 @@ def janelaConfig(janela, titulo):
     altura_tela = janela.winfo_screenheight()
     janela.geometry(f"{largura_tela}x{altura_tela}+0+0")
 
+def mudarPessoa(pessoa, janela, frame):
+    global nomeSelecionado
+    print(pessoa)
+    nomeSelecionado = pessoa
+    resetarCoresBotoes(frame)
+    janela.configure(fg_color="blue")
 
-def telaLotto(local, usuario):
-    nomeSelecionado = usuario
+def telaLotto(local):
     def pesquisar_chave(event):
         chave_campo_digitada = digt_chave.get()
+        #registro_campo_digitada =  digt_registro.get()
 
-        with open("c:/Users/User/Desktop/chaves.txt", "r") as arquivo:
+        with open("config/chaves/chaves.txt", "r") as arquivo:
             dados = arquivo.read()
             chaves = json.loads("[" + dados.replace("}\n{", "},{") + "]")
             for item in chaves:
                 if str(item.get("chave")) == chave_campo_digitada:
-                    titletipo_label.configure(text=f"{item.get('tipo')}")
-                    return
-            titletipo_label.configure(text="Chave não encontrada")
+                    if len(nomeSelecionado) == 0 :
+                        digt_registro.insert(0, item.get('proprietario'))
+                    return 0
+            erros_label.configure(text="Chave não encontrada")
 
     janela_lotto= customtkinter.CTk()
     if local == "modal":
         janela_lotto.title("LOTTO")
-        janela_lotto.geometry("%dx%d"%(500,800))
+        janela_lotto.geometry("%dx%d"%(1050,800))
     else:
         janela.destroy()
         janelaConfig(janela_lotto, "LOTTO")
 
-    titletipo_label = customtkinter.CTkLabel(janela_lotto, text="", font=("Helvetica", 60), fg_color='transparent', text_color='white')
-    titletipo_label.pack()
     titlereporte_label = customtkinter.CTkLabel(janela_lotto, text="LOTTO", font=("Helvetica", 60, "bold"), fg_color='transparent', text_color='white')
     titlereporte_label.pack()
 
-
     frame_total = customtkinter.CTkFrame(janela_lotto,fg_color='transparent',width=501)
-    frame_total.pack()
-    lotto_inicial_frame = customtkinter.CTkFrame(frame_total, fg_color='transparent',width=950)
-    lotto_inicial_frame.pack(side='left')
-    chave_title_label = customtkinter.CTkLabel(lotto_inicial_frame, text="Maquina", font=("Helvetica", 20, "bold"), fg_color='transparent',width=950, anchor="w", text_color='white')
-    chave_title_label.pack(pady=10)
-    digt_chave = customtkinter.CTkEntry(lotto_inicial_frame, placeholder_text="Inserir Maquina",width=950,height=35, font=("Helvetica", 20))
-    digt_chave.pack()	
-    digt_chave.bind("<KeyRelease>", pesquisar_chave)
-    teste_title_label = customtkinter.CTkLabel(lotto_inicial_frame, text=nomeSelecionado, font=("Helvetica", 20, "bold"), fg_color='transparent',width=950, anchor="w", text_color='white')
-    teste_title_label.pack(pady=10)
+    frame_total.pack(pady=50)
 
+    lotto_form_frame = customtkinter.CTkFrame(frame_total, fg_color='transparent')
+    lotto_form_frame.pack()
+    lotto_inicial_frame = customtkinter.CTkFrame(lotto_form_frame, fg_color='transparent',width=950)
+    lotto_inicial_frame.pack()
+    lotto_frame = customtkinter.CTkFrame(lotto_inicial_frame, fg_color='transparent',width=950)
+    lotto_frame.pack(side='left',padx=10)
+    chave_title_label = customtkinter.CTkLabel(lotto_frame, text="Chave", font=("Helvetica", 20, "bold"), fg_color='transparent',width=450, anchor="w", text_color='white')
+    chave_title_label.pack(pady=10)
+    digt_chave = customtkinter.CTkEntry(lotto_frame,width=450,height=35, font=("Helvetica", 20))
+    digt_chave.pack()	
+    lotto_frame = customtkinter.CTkFrame(lotto_inicial_frame, fg_color='transparent',width=950)
+    lotto_frame.pack(side='left',padx=10)
+    maquina_title_label = customtkinter.CTkLabel(lotto_frame, text="Maquina", font=("Helvetica", 20, "bold"), fg_color='transparent',width=450, anchor="w", text_color='white')
+    maquina_title_label.pack(pady=10)
+    digt_maquina = customtkinter.CTkEntry(lotto_frame,width=450,height=35, font=("Helvetica", 20))
+    digt_maquina.insert(0, maquinaSelecionada)
+    digt_maquina.pack()	
+    digt_chave.bind("<KeyRelease>", pesquisar_chave)
+    lotto_inicial_frame = customtkinter.CTkFrame(lotto_form_frame, fg_color='transparent',width=950)
+    lotto_inicial_frame.pack(pady=50)
+    lotto_frame = customtkinter.CTkFrame(lotto_inicial_frame, fg_color='transparent',width=950)
+    lotto_frame.pack(side='left',padx=10)
+    registro_title_label = customtkinter.CTkLabel(lotto_frame, text="Registro", font=("Helvetica", 20, "bold"), fg_color='transparent',width=600, anchor="w", text_color='white')
+    registro_title_label.pack(pady=10)
+    digt_registro = customtkinter.CTkEntry(lotto_frame,width=600,height=35, font=("Helvetica", 20))
+    digt_registro.insert(0, nomeSelecionado)
+    digt_registro.pack()	
+    digt_registro.select_clear()
+    lotto_frame = customtkinter.CTkFrame(lotto_inicial_frame, fg_color='transparent',width=950)
+    lotto_frame.pack(side='left',padx=10)
+    data_title_label = customtkinter.CTkLabel(lotto_frame, text="Data", font=("Helvetica", 20, "bold"), fg_color='transparent',width=300, anchor="w", text_color='white')
+    data_title_label.pack(pady=10)
+    digt_data = customtkinter.CTkEntry(lotto_frame,width=300,height=35, font=("Helvetica", 20))
+    digt_data.insert(0, datetime.now().strftime("%d-%m-%Y %H:%M:%S"))
+    digt_data.pack()	
+    erros_label = customtkinter.CTkLabel(lotto_form_frame, text="", font=("Helvetica", 20), fg_color='transparent', text_color='white')
+    erros_label.pack(side='left', padx=15)
     janela_lotto.mainloop()
+
+def resetarCoresBotoes(janela):
+    for widget in janela.winfo_children():
+        if isinstance(widget, customtkinter.CTkButton):
+            widget.configure(fg_color="transparent")
 
 def enviarPcFactory():
     print(nomeSelecionado)
 
+def procurar_maquina(event):
+    global maquinaSelecionada
+    maquinaSelecionada = event.get()
+
 def telaReporte_pcFactory(cod, txt):
-    def mudarPessoa(pessoa, janela):
-        global nomeSelecionado
-        print(pessoa)
-        nomeSelecionado = pessoa
-        janela.configure(fg_color="red")
     janela.destroy()
     janela_reporte_pcf = customtkinter.CTk()
     janelaConfig(janela_reporte_pcf, "Reporte"+" "+cod)
@@ -140,35 +183,32 @@ def telaReporte_pcFactory(cod, txt):
     userbox_frame.pack(side='left')
     usuario_carregados = mostrar_usuarios(obter_turno_atual(), cod)
     for i in range(len(usuario_carregados)):
-        corSelect = "transparent"
-        if usuario_carregados[i]["Nome"] == nomeSelecionado:
-            corSelect = "red"
         if usuario_carregados[i]["Nome"] != None: 
             my_image = customtkinter.CTkImage(light_image=Image.open("config/imgs/users/"+usuario_carregados[i]["Foto"]),dark_image=Image.open("config/imgs/users/"+usuario_carregados[i]["Foto"]),size=(90, 110))
             button_user = customtkinter.CTkButton(userbox_frame, image=my_image, compound="top", text=usuario_carregados[i]["Nome"],font=("Helvetica", 18, "bold"), fg_color="transparent", text_color='white')
-            button_user.configure(command=lambda arg1=usuario_carregados[i]["Nome"], arg2=button_user: mudarPessoa(arg1, arg2))
+            button_user.configure(command=lambda arg1=usuario_carregados[i]["Nome"], arg2=button_user, arg3=userbox_frame: mudarPessoa(arg1, arg2,arg3))
             button_user.pack(side='left', padx=8, pady=8)
-
 
     digitMaquina_frame = customtkinter.CTkFrame(frame_total, fg_color='transparent')
     digitMaquina_frame.pack(pady=20)
     maquinatitle_label = customtkinter.CTkLabel(digitMaquina_frame, text="Maquina", font=("Helvetica", 20, "bold"), fg_color='transparent',width=950, anchor="w", text_color='white')
     maquinatitle_label.pack(pady=10)
     digt_maquina = customtkinter.CTkEntry(digitMaquina_frame, placeholder_text="Inserir Maquina",width=950,height=35, font=("Helvetica", 20))
-    digt_maquina.pack()	
+    digt_maquina.pack()
+    digt_maquina.bind("<KeyRelease>", lambda event: procurar_maquina(digt_maquina))
 
     digitComment_frame = customtkinter.CTkFrame(frame_total, fg_color='transparent')
     digitComment_frame.pack(pady=20)
     maquinatitle_label = customtkinter.CTkLabel(digitComment_frame, justify="left", text="Comentario", font=("Helvetica", 20, "bold"), fg_color='transparent', width=950, anchor="w", text_color='white')
     maquinatitle_label.pack(pady=10)
-    digt_maquina = customtkinter.CTkTextbox(digitComment_frame, width=950, font=("Helvetica", 20))
-    digt_maquina.pack()
+    digt_comentario = customtkinter.CTkTextbox(digitComment_frame, width=950, font=("Helvetica", 20))
+    digt_comentario.pack()
 
     buttonSave_frame = customtkinter.CTkFrame(frame_total, fg_color='transparent')
     buttonSave_frame.pack(pady=20)
     button = customtkinter.CTkButton(buttonSave_frame, text="SALVAR",font=("Helvetica", 18, "bold"), command=enviarPcFactory, fg_color='#6aa84f', text_color='white', width=850,height=40)
     button.pack(side='left', padx=8, pady=8)
-    button = customtkinter.CTkButton(buttonSave_frame, text="LOTTO",font=("Helvetica", 18, "bold"), command=lambda arg1="modal", arg2=nomeSelecionado: telaLotto(arg1, arg2), fg_color='#1155cc', text_color='white', width=80,height=40)
+    button = customtkinter.CTkButton(buttonSave_frame, text="LOTTO",font=("Helvetica", 18, "bold"), command=lambda arg1="modal": telaLotto(arg1), fg_color='#1155cc', text_color='white', width=80,height=40)
     button.pack(side='left', padx=8, pady=8)
 
     janela_reporte_pcf.mainloop()
@@ -192,7 +232,7 @@ for i in range(2):
 
 button_frame = customtkinter.CTkFrame(janela, fg_color='transparent')
 button_frame.pack()
-button = customtkinter.CTkButton(button_frame, text="SISTEMA LOTTO",command=lambda arg1="naomodal", arg2=nomeSelecionado: telaLotto(arg1, arg2), font=("Helvetica", 18, "bold"), width=button_grand, height=button_height, fg_color='white', text_color='dark blue')
+button = customtkinter.CTkButton(button_frame, text="SISTEMA LOTTO",command=lambda arg1="naomodal": telaLotto(arg1), font=("Helvetica", 18, "bold"), width=button_grand, height=button_height, fg_color='white', text_color='dark blue')
 button.pack(side='left', padx=8, pady=8)
 button = customtkinter.CTkButton(button_frame, text="BCR", font=("Helvetica", 18, "bold"), width=button_width, height=button_height, fg_color='white', text_color='dark blue')
 button.pack(side='left', padx=8, pady=8)
