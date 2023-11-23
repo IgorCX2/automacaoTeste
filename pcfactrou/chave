@@ -1,0 +1,15 @@
+{
+    "chave": 1,
+    "tipo": "elétrico",
+    "proprietario": "1111"
+}
+{
+    "chave": 3,
+    "tipo": "mecânico",
+    "proprietario": "kkkkkkkk"
+}
+{
+    "chave": 2,
+    "tipo": "mecânico",
+    "proprietario": "ola"
+}
