@@ -1,0 +1,323 @@
+import customtkinter
+from PIL import Image
+from datetime import datetime
+import json
+
+customtkinter.set_appearance_mode("dark")
+customtkinter.set_default_color_theme("dark-blue")
+nomeSelecionado = ""
+maquinaSelecionada = ""
+def carregar_usuarios():
+    try:
+        with open("users/userConfig.txt", "r") as arquivo:
+            usuarios = eval(arquivo.read())
+        return usuarios
+    except FileNotFoundError:
+        return []
+
+def carregar_maquinas():
+    try:
+        with open("config/maquina.txt", "r") as arquivo:
+            usuarios = eval(arquivo.read())
+        return usuarios
+    except FileNotFoundError:
+        return []
+
+def obter_turno_atual():
+    hora_atual = datetime.now().time()
+    turno_m_inicio = datetime.strptime("06:00", "%H:%M").time()
+    turno_m_fim = datetime.strptime("19:00", "%H:%M").time()
+    turno1_inicio = datetime.strptime("06:00", "%H:%M").time()
+    turno2_inicio = datetime.strptime("14:36", "%H:%M").time()
+    turno3_inicio = datetime.strptime("23:04", "%H:%M").time()
+
+    if turno_m_inicio <= hora_atual < turno_m_fim:
+        if turno1_inicio <= hora_atual < turno2_inicio:
+            return "M1"
+        else:
+            return "M2"
+    elif turno1_inicio <= hora_atual < turno2_inicio:
+        return 1
+    elif turno2_inicio <= hora_atual < turno3_inicio:
+        return 2
+    else:
+        return 3
+
+def mostrar_usuarios(turno_selecionado, cod):
+    list_permit={
+        "0405": "Mecanico",
+        "0406": "Eletricista",
+        "0407": "Eletricista",
+        "0408": "Eletricista",
+        "0403": "TODOS",
+        "0706": "TODOS",
+        "0502": "Mecanico",
+        "0504": "Eletricista",
+        "0505": "Eletricista",
+        "0506": "Eletricista",
+        "0404": "Mecanico",
+        "0418": "Mecanico",
+    }
+    usuarios = carregar_usuarios()
+    usuarios_turno = []
+    print(list_permit[cod])
+    for usuario in usuarios:
+        if isinstance(turno_selecionado, int) and usuario["Profissao"] != list_permit[cod]:
+            if str(usuario["Turno"]) == str(turno_selecionado):
+                usuarios_turno.append(usuario)
+        elif isinstance(turno_selecionado, str):
+            if turno_selecionado[0] == 'M' and (usuario["Turno"] == "M" or str(usuario["Turno"]) == turno_selecionado[1:]) and usuario["Profissao"] != list_permit[cod]:
+                usuarios_turno.append(usuario)
+    return usuarios_turno
+
+def janelaConfig(janela, titulo):
+    janela.title(titulo)
+    largura_tela = janela.winfo_screenwidth()
+    altura_tela = janela.winfo_screenheight()
+    janela.geometry(f"{largura_tela}x{altura_tela}+0+0")
+
+def mudarPessoa(pessoa, janela, frame):
+    global nomeSelecionado
+    print(pessoa)
+    nomeSelecionado = pessoa
+    resetarCoresBotoes(frame)
+    janela.configure(fg_color="blue")
+
+def telaLotto(local):
+    def executar_operacao():
+        chave = digt_chave.get()
+        registro = digt_registro.get()
+        maquina = digt_maquina.get()
+
+        if chave_existe_no_temporario(chave):
+            desbloquear_registro(chave, registro, maquina)
+        else:
+            salvar_registro(chave, registro, maquina)
+
+    def chave_existe_no_temporario(chave):
+        with open('bd/loto/temporario.txt', 'r') as arquivo_temporario:
+            linhas = arquivo_temporario.readlines()
+
+        for linha in linhas:
+            dados_registro = json.loads(linha)
+            if dados_registro['chave'] == chave:
+                return True
+            
+    def salvar_registro(chave, registro, maquina):
+        dados_registro = {
+            'chave': chave,
+            'registro': registro,
+            'maquina': maquina
+        }
+
+        with open('bd/loto/temporario.txt', 'a') as arquivo_temporario:
+            json.dump(dados_registro, arquivo_temporario)
+            arquivo_temporario.write('\n')
+
+        print("Registro salvo com sucesso!")
+
+    def desbloquear_registro(chave, registro, maquina):
+        with open('temporario.txt', 'r') as arquivo_temporario:
+            linhas = arquivo_temporario.readlines()
+
+        with open('bd/loto/temporario.txt', 'w') as arquivo_temporario:
+            linha_excluida = None 
+            for linha in linhas:
+                dados_registro = json.loads(linha)
+                if dados_registro['chave'] == chave:
+                    linha_excluida = json.loads(linha)
+                else:
+                    json.dump(dados_registro, arquivo_temporario)
+                    arquivo_temporario.write('\n')
+        print(linha_excluida)
+                
+
+        with open('bd/loto/historico.txt', 'a') as arquivo_historico:
+            dados_registro = {
+                'chave': linha_excluida['chave'],
+                'registro': linha_excluida['registro'],
+                'maquina': linha_excluida['maquina']
+            }
+            json.dump(dados_registro, arquivo_historico)
+            arquivo_historico.write('\n')
+
+        print("Registro desbloqueado e movido para o histórico.")
+
+
+    with open("bd/loto/temporario.txt", "r") as arquivo:
+        dados = arquivo.read()
+        temp = json.loads("[" + dados.replace("}\n{", "},{") + "]")
+
+    def pesquisar_chave(event):
+        chave_campo_digitada = digt_chave.get()
+
+        for chave_temp in temp:
+            print(chave_temp.get("chave"))
+            print(chave_campo_digitada)
+            if str(chave_temp.get("chave")) == chave_campo_digitada:
+                digt_maquina.delete(0,len(digt_maquina.get()))
+                digt_maquina.insert(0, chave_temp.get('maquina'))
+                if len(nomeSelecionado) == 0:
+                    digt_registro.delete(0,len(digt_registro.get()))
+                    digt_registro.insert(0, chave_temp.get('registro_bloquear'))
+                return 0
+            with open("config/chaves/chaves.txt", "r") as arquivo:
+                dados = arquivo.read()
+                chaves = json.loads("[" + dados.replace("}\n{", "},{") + "]")
+                for item in chaves:
+                    if str(item.get("chave")) == chave_campo_digitada:
+                        if len(nomeSelecionado) == 0:
+                            digt_registro.delete(0,len(digt_registro.get()))
+                            digt_registro.insert(0, item.get('proprietario'))
+                        return 0
+                digt_maquina.delete(0,len(digt_maquina.get()))
+                digt_maquina.insert(0, maquinaSelecionada)
+                erros_label.configure(text="Chave não encontrada")
+                
+
+    janela_lotto= customtkinter.CTk()
+    if local == "modal":
+        janela_lotto.title("LOTTO")
+        janela_lotto.geometry("%dx%d"%(1050,800))
+    else:
+        janela.destroy()
+        janelaConfig(janela_lotto, "LOTTO")
+
+    titlereporte_label = customtkinter.CTkLabel(janela_lotto, text="LOTTO", font=("Helvetica", 60, "bold"), fg_color='transparent', text_color='white')
+    titlereporte_label.pack(pady=70)
+
+    frame_total = customtkinter.CTkFrame(janela_lotto,fg_color='transparent',width=501)
+    frame_total.pack(pady=50)
+
+    lotto_form_frame = customtkinter.CTkFrame(frame_total, fg_color='transparent')
+    lotto_form_frame.pack()
+    lotto_inicial_frame = customtkinter.CTkFrame(lotto_form_frame, fg_color='transparent',width=950)
+    lotto_inicial_frame.pack()
+    lotto_frame = customtkinter.CTkFrame(lotto_inicial_frame, fg_color='transparent',width=950)
+    lotto_frame.pack(side='left',padx=10)
+    chave_title_label = customtkinter.CTkLabel(lotto_frame, text="Chave", font=("Helvetica", 20, "bold"), fg_color='transparent',width=450, anchor="w", text_color='white')
+    chave_title_label.pack(pady=10)
+    digt_chave = customtkinter.CTkEntry(lotto_frame,width=450,height=35, font=("Helvetica", 20))
+    digt_chave.pack()	
+    lotto_frame = customtkinter.CTkFrame(lotto_inicial_frame, fg_color='transparent',width=950)
+    lotto_frame.pack(side='left',padx=10)
+    maquina_title_label = customtkinter.CTkLabel(lotto_frame, text="Maquina", font=("Helvetica", 20, "bold"), fg_color='transparent',width=450, anchor="w", text_color='white')
+    maquina_title_label.pack(pady=10)
+    digt_maquina = customtkinter.CTkEntry(lotto_frame,width=450,height=35, font=("Helvetica", 20))
+    digt_maquina.insert(0, maquinaSelecionada)
+    digt_maquina.pack()	
+    digt_chave.bind("<KeyRelease>", pesquisar_chave)
+    lotto_inicial_frame = customtkinter.CTkFrame(lotto_form_frame, fg_color='transparent',width=950)
+    lotto_inicial_frame.pack(pady=50)
+    lotto_frame = customtkinter.CTkFrame(lotto_inicial_frame, fg_color='transparent',width=950)
+    lotto_frame.pack(side='left',padx=10)
+    registro_title_label = customtkinter.CTkLabel(lotto_frame, text="Registro", font=("Helvetica", 20, "bold"), fg_color='transparent',width=600, anchor="w", text_color='white')
+    registro_title_label.pack(pady=10)
+    digt_registro = customtkinter.CTkEntry(lotto_frame,width=600,height=35, font=("Helvetica", 20))
+    digt_registro.insert(0, nomeSelecionado)
+    digt_registro.pack()	
+    lotto_frame = customtkinter.CTkFrame(lotto_inicial_frame, fg_color='transparent',width=950)
+    lotto_frame.pack(side='left',padx=10)
+    data_title_label = customtkinter.CTkLabel(lotto_frame, text="Data", font=("Helvetica", 20, "bold"), fg_color='transparent',width=300, anchor="w", text_color='white')
+    data_title_label.pack(pady=10)
+    digt_data = customtkinter.CTkEntry(lotto_frame,width=300,height=35, font=("Helvetica", 20))
+    digt_data.insert(0, datetime.now().strftime("%d-%m-%Y %H:%M:%S"))
+    digt_data.pack()
+    lotto_inicial_frame = customtkinter.CTkFrame(lotto_form_frame, fg_color='transparent',width=950)
+    lotto_inicial_frame.pack()	
+    erros_label = customtkinter.CTkLabel(lotto_inicial_frame, text="", font=("Helvetica", 20), fg_color='transparent', text_color='white')
+    erros_label.pack(side='left', padx=15)
+    lotto_inicial_frame = customtkinter.CTkFrame(lotto_form_frame, fg_color='transparent',width=950)
+    lotto_inicial_frame.pack()
+    button = customtkinter.CTkButton(lotto_inicial_frame, text="SALVAR",font=("Helvetica", 18, "bold"), fg_color='#6aa84f', text_color='white', width=300, height=40, command=executar_operacao)
+    button.pack()
+    janela_lotto.mainloop()
+
+def resetarCoresBotoes(janela):
+    for widget in janela.winfo_children():
+        if isinstance(widget, customtkinter.CTkButton):
+            widget.configure(fg_color="transparent")
+
+def enviarPcFactory():
+    print(nomeSelecionado)
+
+def procurar_maquina(event):
+    global maquinaSelecionada
+    maquinaSelecionada = event.get()
+
+def telaReporte_pcFactory(cod, txt):
+    janela.destroy()
+    janela_reporte_pcf = customtkinter.CTk()
+    janelaConfig(janela_reporte_pcf, "Reporte"+" "+cod)
+    titlereporte_label = customtkinter.CTkLabel(janela_reporte_pcf, text=txt.upper(), font=("Helvetica", 60, "bold"), fg_color='transparent', text_color='white')
+    titlereporte_label.pack(pady=70)
+
+    frame_total = customtkinter.CTkFrame(janela_reporte_pcf,fg_color='transparent',width=501)
+    frame_total.pack()
+
+    user_frame = customtkinter.CTkFrame(frame_total, fg_color='transparent')
+    user_frame.pack()
+    usertitle_label = customtkinter.CTkLabel(user_frame, text="Usuario", font=("Helvetica", 20, "bold"), fg_color='transparent',width=950, anchor="w", text_color='white')
+    usertitle_label.pack()
+
+    userbox_frame = customtkinter.CTkFrame(user_frame, fg_color='transparent',width=950)
+    userbox_frame.pack(side='left')
+    usuario_carregados = mostrar_usuarios(obter_turno_atual(), cod)
+    for i in range(len(usuario_carregados)):
+        if usuario_carregados[i]["Nome"] != None: 
+            my_image = customtkinter.CTkImage(light_image=Image.open("config/imgs/users/"+usuario_carregados[i]["Foto"]),dark_image=Image.open("config/imgs/users/"+usuario_carregados[i]["Foto"]),size=(90, 110))
+            button_user = customtkinter.CTkButton(userbox_frame, image=my_image, compound="top", text=usuario_carregados[i]["Nome"],font=("Helvetica", 18, "bold"), fg_color="transparent", text_color='white')
+            button_user.configure(command=lambda arg1=usuario_carregados[i]["Nome"], arg2=button_user, arg3=userbox_frame: mudarPessoa(arg1, arg2,arg3))
+            button_user.pack(side='left', padx=8, pady=8)
+
+    digitMaquina_frame = customtkinter.CTkFrame(frame_total, fg_color='transparent')
+    digitMaquina_frame.pack(pady=20)
+    maquinatitle_label = customtkinter.CTkLabel(digitMaquina_frame, text="Maquina", font=("Helvetica", 20, "bold"), fg_color='transparent',width=950, anchor="w", text_color='white')
+    maquinatitle_label.pack(pady=10)
+    digt_maquina = customtkinter.CTkEntry(digitMaquina_frame, placeholder_text="Inserir Maquina",width=950,height=35, font=("Helvetica", 20))
+    digt_maquina.pack()
+    digt_maquina.bind("<KeyRelease>", lambda event: procurar_maquina(digt_maquina))
+
+    digitComment_frame = customtkinter.CTkFrame(frame_total, fg_color='transparent')
+    digitComment_frame.pack(pady=20)
+    maquinatitle_label = customtkinter.CTkLabel(digitComment_frame, justify="left", text="Comentario", font=("Helvetica", 20, "bold"), fg_color='transparent', width=950, anchor="w", text_color='white')
+    maquinatitle_label.pack(pady=10)
+    digt_comentario = customtkinter.CTkTextbox(digitComment_frame, width=950, font=("Helvetica", 20))
+    digt_comentario.pack()
+
+    buttonSave_frame = customtkinter.CTkFrame(frame_total, fg_color='transparent')
+    buttonSave_frame.pack(pady=20)
+    button = customtkinter.CTkButton(buttonSave_frame, text="SALVAR",font=("Helvetica", 18, "bold"), command=enviarPcFactory, fg_color='#6aa84f', text_color='white', width=850,height=40)
+    button.pack(side='left', padx=8, pady=8)
+    button = customtkinter.CTkButton(buttonSave_frame, text="LOTTO",font=("Helvetica", 18, "bold"), command=lambda arg1="modal": telaLotto(arg1), fg_color='#1155cc', text_color='white', width=80,height=40)
+    button.pack(side='left', padx=8, pady=8)
+
+    janela_reporte_pcf.mainloop()
+
+janela = customtkinter.CTk()
+janelaConfig(janela, "Manutencao Automatizada")
+buttons_cod1=[["0405","0406","0407","0408","0403","0706"],["0502","0504","0505","0506","0404","0418"]]
+buttons_txt1=[["Elétrico","Hidráulico","Mecânico","Pneumático","Análise","Liberar"],["Pre-Elétrico","Pre-Hidráulico","Pre-Mecânico","Pre-Pneumático","BCR","Ajus.Parâmetro"]]
+button_width = 153
+button_height = 120
+button_grand = (button_width*4)+50
+title_label = customtkinter.CTkLabel(janela, text="MANUTENÇÃO", font=("Helvetica", 70, "bold"), fg_color='transparent', text_color='white')
+title_label.pack(pady=100)
+
+for i in range(2):
+    button_frame = customtkinter.CTkFrame(janela, fg_color='transparent')
+    button_frame.pack()
+    for c in range(len(buttons_cod1[i])):
+        button = customtkinter.CTkButton(button_frame, text=buttons_txt1[i][c], command=lambda arg1=buttons_cod1[i][c], arg2=buttons_txt1[i][c]: telaReporte_pcFactory(arg1,arg2), font=("Helvetica", 18, "bold"), width=button_width, height=button_height, fg_color='white', text_color='dark blue')
+        button.pack(side='left', padx=8, pady=8)
+
+button_frame = customtkinter.CTkFrame(janela, fg_color='transparent')
+button_frame.pack()
+button = customtkinter.CTkButton(button_frame, text="SISTEMA LOTTO",command=lambda arg1="naomodal": telaLotto(arg1), font=("Helvetica", 18, "bold"), width=button_grand, height=button_height, fg_color='white', text_color='dark blue')
+button.pack(side='left', padx=8, pady=8)
+button = customtkinter.CTkButton(button_frame, text="BCR", font=("Helvetica", 18, "bold"), width=button_width, height=button_height, fg_color='white', text_color='dark blue')
+button.pack(side='left', padx=8, pady=8)
+button = customtkinter.CTkButton(button_frame, text="LIMPEZA", font=("Helvetica", 18, "bold"), width=button_width, height=button_height, fg_color='white', text_color='dark blue')
+button.pack(side='left', padx=8, pady=8)
+
+janela.mainloop()
