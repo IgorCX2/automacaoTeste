@@ -88,11 +88,12 @@ def telaLotto(local):
         chave = digt_chave.get()
         registro = digt_registro.get()
         maquina = digt_maquina.get()
+        data = digt_data.get()
 
         if chave_existe_no_temporario(chave):
-            desbloquear_registro(chave, registro, maquina)
+            desbloquear_registro(chave, registro,data, janela)
         else:
-            salvar_registro(chave, registro, maquina)
+            salvar_registro(chave, registro, maquina,data)
 
     def chave_existe_no_temporario(chave):
         with open('bd/loto/temporario.txt', 'r') as arquivo_temporario:
@@ -101,13 +102,14 @@ def telaLotto(local):
         for linha in linhas:
             dados_registro = json.loads(linha)
             if dados_registro['chave'] == chave:
-                return True
+                return dados_registro
             
-    def salvar_registro(chave, registro, maquina):
+    def salvar_registro(chave, registro, maquina, data):
         dados_registro = {
             'chave': chave,
-            'registro': registro,
-            'maquina': maquina
+            'maquina': maquina,
+            'registro_bloquear': registro,
+            'data_bloquear': data
         }
 
         with open('bd/loto/temporario.txt', 'a') as arquivo_temporario:
@@ -116,8 +118,8 @@ def telaLotto(local):
 
         print("Registro salvo com sucesso!")
 
-    def desbloquear_registro(chave, registro, maquina):
-        with open('temporario.txt', 'r') as arquivo_temporario:
+    def desbloquear_registro(chave, registro, data, janela):
+        with open('bd/loto/temporario.txt', 'r') as arquivo_temporario:
             linhas = arquivo_temporario.readlines()
 
         with open('bd/loto/temporario.txt', 'w') as arquivo_temporario:
@@ -135,32 +137,32 @@ def telaLotto(local):
         with open('bd/loto/historico.txt', 'a') as arquivo_historico:
             dados_registro = {
                 'chave': linha_excluida['chave'],
-                'registro': linha_excluida['registro'],
-                'maquina': linha_excluida['maquina']
+                'maquina': linha_excluida['maquina'],
+                'registro_bloquear': linha_excluida['registro_bloquear'],
+                "registro_desbloquear" : registro,
+                'data_bloquear': linha_excluida['data_bloquear'],
+                'data_desbloquearbloquear': data
             }
             json.dump(dados_registro, arquivo_historico)
             arquivo_historico.write('\n')
 
         print("Registro desbloqueado e movido para o histórico.")
-
-
-    with open("bd/loto/temporario.txt", "r") as arquivo:
-        dados = arquivo.read()
-        temp = json.loads("[" + dados.replace("}\n{", "},{") + "]")
-
+        janela.mainloop()
+        janela_lotto.destroy()
+        
     def pesquisar_chave(event):
         chave_campo_digitada = digt_chave.get()
-
-        for chave_temp in temp:
-            print(chave_temp.get("chave"))
-            print(chave_campo_digitada)
-            if str(chave_temp.get("chave")) == chave_campo_digitada:
-                digt_maquina.delete(0,len(digt_maquina.get()))
-                digt_maquina.insert(0, chave_temp.get('maquina'))
-                if len(nomeSelecionado) == 0:
-                    digt_registro.delete(0,len(digt_registro.get()))
-                    digt_registro.insert(0, chave_temp.get('registro_bloquear'))
+        lottoHistorico = chave_existe_no_temporario(chave_campo_digitada)
+        if lottoHistorico:
+            titlereporte_label.configure(text="LIBERAR LOTTO")
+            digt_maquina.delete(0,len(digt_maquina.get()))
+            digt_maquina.insert(0, lottoHistorico['maquina'])
+            if len(nomeSelecionado) == 0:
+                digt_registro.delete(0,len(digt_registro.get()))
+                digt_registro.insert(0, lottoHistorico['registro_bloquear'])
                 return 0
+        else:
+            titlereporte_label.configure(text="REALIZAR LOTTO")
             with open("config/chaves/chaves.txt", "r") as arquivo:
                 dados = arquivo.read()
                 chaves = json.loads("[" + dados.replace("}\n{", "},{") + "]")
@@ -172,8 +174,6 @@ def telaLotto(local):
                         return 0
                 digt_maquina.delete(0,len(digt_maquina.get()))
                 digt_maquina.insert(0, maquinaSelecionada)
-                erros_label.configure(text="Chave não encontrada")
-                
 
     janela_lotto= customtkinter.CTk()
     if local == "modal":
