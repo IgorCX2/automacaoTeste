@@ -1,0 +1,106 @@
+import json
+import tkinter as tk
+from tkinter import messagebox
+
+class RegistroApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Cadastro e Desbloqueio de Registros")
+
+        # Variáveis para armazenar os dados do usuário
+        self.chave_var = tk.StringVar()
+        self.registro_var = tk.StringVar()
+        self.maquina_var = tk.StringVar()
+
+        # Criar widgets
+        self.label_chave = tk.Label(root, text="Chave:")
+        self.entry_chave = tk.Entry(root, textvariable=self.chave_var)
+
+        self.label_registro = tk.Label(root, text="Registro:")
+        self.entry_registro = tk.Entry(root, textvariable=self.registro_var)
+
+        self.label_maquina = tk.Label(root, text="Máquina:")
+        self.entry_maquina = tk.Entry(root, textvariable=self.maquina_var)
+
+        self.botao_operacao = tk.Button(root, text="Executar Operação", command=self.executar_operacao)
+
+        # Posicionar widgets na janela
+        self.label_chave.grid(row=0, column=0, padx=10, pady=5)
+        self.entry_chave.grid(row=0, column=1, padx=10, pady=5)
+
+        self.label_registro.grid(row=1, column=0, padx=10, pady=5)
+        self.entry_registro.grid(row=1, column=1, padx=10, pady=5)
+
+        self.label_maquina.grid(row=2, column=0, padx=10, pady=5)
+        self.entry_maquina.grid(row=2, column=1, padx=10, pady=5)
+
+        self.botao_operacao.grid(row=3, column=0, columnspan=2, pady=10)
+
+    def executar_operacao(self):
+        chave = self.chave_var.get()
+        registro = self.registro_var.get()
+        maquina = self.maquina_var.get()
+
+        if self.chave_existe_no_temporario(chave):
+            self.desbloquear_registro(chave, registro, maquina)
+        else:
+            self.salvar_registro(chave, registro, maquina)
+
+    def chave_existe_no_temporario(self, chave):
+        try:
+            with open('temporario.txt', 'r') as arquivo_temporario:
+                linhas = arquivo_temporario.readlines()
+
+            for linha in linhas:
+                dados_registro = json.loads(linha)
+                if dados_registro['chave'] == chave:
+                    return True
+        except FileNotFoundError:
+            return False
+
+        return False
+
+    def salvar_registro(self, chave, registro, maquina):
+        dados_registro = {
+            'chave': chave,
+            'registro': registro,
+            'maquina': maquina
+        }
+
+        with open('temporario.txt', 'a') as arquivo_temporario:
+            json.dump(dados_registro, arquivo_temporario)
+            arquivo_temporario.write('\n')
+
+        print("Registro salvo com sucesso!")
+
+    def desbloquear_registro(self, chave, registro, maquina):
+        with open('temporario.txt', 'r') as arquivo_temporario:
+            linhas = arquivo_temporario.readlines()
+
+        with open('temporario.txt', 'w') as arquivo_temporario:
+            linha_excluida = None  # Variável para armazenar a linha a ser excluída
+            for linha in linhas:
+                dados_registro = json.loads(linha)
+                if dados_registro['chave'] == chave:
+                    linha_excluida = json.loads(linha)  # Armazena a linha a ser excluída
+                else:
+                    json.dump(dados_registro, arquivo_temporario)
+                    arquivo_temporario.write('\n')
+        print(linha_excluida)
+                
+
+        with open('historico.txt', 'a') as arquivo_historico:
+            dados_registro = {
+                'chave': linha_excluida['chave'],
+                'registro': linha_excluida['registro'],
+                'maquina': linha_excluida['maquina']
+            }
+            json.dump(dados_registro, arquivo_historico)
+            arquivo_historico.write('\n')
+
+        print("Registro desbloqueado e movido para o histórico.")
+
+# Criar a janela principal
+root = tk.Tk()
+app = RegistroApp(root)
+root.mainloop()
